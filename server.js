@@ -41,7 +41,7 @@ app.post("/create-account-session", async (req, res) => {
 });
 
 app.post("/ephemeralKey", async (req, res) => {
-  const { nonce } = req.body;
+  const { nonce, issuing_card } = req.body;
 
   const stripe = require("stripe")(secretKey, {
     apiVersion: apiVersion,
@@ -51,7 +51,7 @@ app.post("/ephemeralKey", async (req, res) => {
     const ephemeralKey = await stripe.ephemeralKeys.create(
       {
         nonce: nonce,
-        issuing_card: cardId,
+        issuing_card: issuing_card,
       },
       {
         stripeAccount: accountId,

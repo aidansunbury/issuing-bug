@@ -47,25 +47,19 @@ export default function PaymentsComponent() {
     });
   });
 
-  const fetchEphemeralKey = async () => {
+  const fetchEphemeralKey = async (fetchParams: {
+    issuingCard: string;
+    nonce: string;
+  }) => {
+    const { issuingCard, nonce } = fetchParams;
+
     try {
-      const stripe = await loadStripe(publishableKey, {
-        stripeAccount: accountId,
-        apiVersion: apiVersion,
-      });
-      if (!stripe) {
-        throw new Error("Failed to load Stripe");
-      }
-      console.log("stripe loaded");
-      const nonce = await stripe.createEphemeralKeyNonce({
-        issuingCard: cardId,
-      });
-      console.log("nonce loaded", nonce);
       const response = await fetch("http://localhost:5000/ephemeralKey", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nonce: nonce.nonce,
+          nonce: nonce,
+          issuing_card: issuingCard
         }),
       });
       if (!response.ok) {
@@ -76,8 +70,8 @@ export default function PaymentsComponent() {
       } else {
         const { ephemeralKey } = await response.json();
         const res = {
-          issuingCard: cardId,
-          nonce: nonce.nonce,
+          issuingCard,
+          nonce,
           ephemeralKeySecret: ephemeralKey.secret,
         };
         console.log("ephemeral key loaded", res);
@@ -94,7 +88,7 @@ export default function PaymentsComponent() {
     <div style={{ maxWidth: "800px", marginRight: "auto", marginLeft: "auto" }}>
       <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
         <ConnectIssuingCard
-          fetchEphemeralKey={() => fetchEphemeralKey()}
+          fetchEphemeralKey={fetchEphemeralKey}
           defaultCard={cardId}
           cardSwitching={false}
         />
